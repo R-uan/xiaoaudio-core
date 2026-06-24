@@ -11,7 +11,7 @@ namespace AudioArchive.Shared
     public string Target { get; } = Target;
   }
 
-  public class DuplicatedAudioException(string Message, string Target) :
+  public class DuplicatedException(string Message, string Target) :
      APIException(Message, StatusCodes.Status409Conflict)
   {
     public string Target { get; } = Target;
@@ -22,4 +22,29 @@ namespace AudioArchive.Shared
   {
     public string Target { get; } = Target;
   }
+
+  public class VerificationException(string Message, string Target)
+    : APIException(Message, StatusCodes.Status400BadRequest)
+  {
+    public string Target { get; } = Target;
+  }
+
+  public class SupportException(string Message, string Target)
+    : APIException(Message, StatusCodes.Status400BadRequest)
+  {
+    public string Target { get; } = Target;
+  }
+
+  public class UnauthorizedException(string Message, string Target)
+    : APIException(Message, StatusCodes.Status400BadRequest)
+  {
+    public string Target { get; } = Target;
+  }
+
+  public class ReservedException(string Message, string Target)
+    : APIException(Message, StatusCodes.Status400BadRequest)
+  {
+    public string Target { get; } = Target;
+  }
+
 }
