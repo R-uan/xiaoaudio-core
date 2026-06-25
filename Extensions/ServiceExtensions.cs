@@ -1,6 +1,7 @@
 using AudioArchive.Shared;
 using AudioArchive.Database;
 using AudioArchive.Infrastructure.Caching;
+using AudioArchive.Infrastructure.Settings;
 using AudioArchive.Infrastructure.Providers;
 
 using AudioArchive.Modules.Core.Services;
@@ -41,7 +42,7 @@ namespace AudioArchive.Extensions
       services.AddScoped<IAccountService, AccountService>();
       services.AddScoped<ISupportService, SupportService>();
       services.AddScoped<IAuthenticationProvider, AuthenticationProvider>();
-      services.AddScoped<IEmailSender, EmailProvider>();
+      services.AddTransient<IEmailSender, EmailProvider>();
       return services;
     }
 
