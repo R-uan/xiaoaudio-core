@@ -1,22 +1,24 @@
 using AudioArchive.Shared;
 using AudioArchive.Database;
+using AudioArchive.Infrastructure.Providers;
 using AudioArchive.Database.Entity;
 using Microsoft.EntityFrameworkCore;
-using AudioArchive.Modules.Core.Request;
-using AudioArchive.Modules.Core.Response;
+using AudioArchive.Modules.Core.Requests;
+using AudioArchive.Modules.Core.Responses;
 using Microsoft.AspNetCore.Identity.UI.Services;
-
 namespace AudioArchive.Modules.Core.Services
 {
   public class AccountService(
-    IHttpContextAccessor httpContext,
     DatabaseContext database,
-    IEmailSender emailProvider
-  )
+    IEmailSender emailProvider,
+    IHttpContextAccessor httpContext,
+    IAuthenticationProvider authProvider
+  ) : IAccountService
   {
     private readonly DatabaseContext _db = database;
     private readonly IEmailSender _emailProvider = emailProvider;
     private readonly IHttpContextAccessor _httpContext = httpContext;
+    private readonly IAuthenticationProvider _authProvider = authProvider;
 
     private Account CurrentUser => _httpContext.HttpContext?.Items["CurrentUser"] as Account
       ?? throw new UnauthorizedAccessException("Not authenticated");
@@ -39,7 +41,22 @@ namespace AudioArchive.Modules.Core.Services
     }
 
     public async Task<string> AuthenticateAccountAsync(AuthenticationRequest request) {
-      
+      var account = await this._db.Accounts
+        .Where(a => a.Email == request.Email)
+        .FirstOrDefaultAsync() 
+        ?? throw new NotFoundException(
+          Message: "This email is not associated to an account.",
+          Target: "AccountService::AuthenticateAccountAsync"
+        );
+
+      if (!account.VerifyPassword(request.Password)) {
+        throw new UnauthorizedException(
+          Message: "Credentials invalid.",
+          Target: "AccountService::AuthenticateAccountAsync"
+        );
+      }
+
+      return this._authProvider.GenerateToken(account);
     }
     
     public async Task PasswordChangeAsync(PasswordChangeRequest request) {

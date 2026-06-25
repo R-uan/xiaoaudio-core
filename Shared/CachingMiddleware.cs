@@ -1,4 +1,4 @@
-using AudioArchive.Services;
+using AudioArchive.Infrastructure.Caching;
 
 namespace AudioArchive.Shared
 {

@@ -1,4 +1,3 @@
-using AudioArchive.Database.Entity;
 namespace AudioArchive.Modules.Support.Requests
 {
   public class SendTicketMessageRequest

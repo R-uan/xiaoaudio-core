@@ -1,4 +1,4 @@
-using AudioArchive.Models;
+using AudioArchive.Modules.Playlists.Requests;
 
 namespace AudioArchive.Database.Entity {
   public class Playlist {

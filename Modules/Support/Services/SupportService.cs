@@ -6,7 +6,7 @@ using AudioArchive.Modules.Support.Requests;
 
 namespace AudioArchive.Modules.Support.Services
 {
-  public class SupportService(IHttpContextAccessor httpContext, DatabaseContext database)
+  public class SupportService(IHttpContextAccessor httpContext, DatabaseContext database) : ISupportService
   {
     private readonly DatabaseContext _db = database;
     private readonly IHttpContextAccessor _httpContext = httpContext;

@@ -16,9 +16,15 @@ namespace AudioArchive.Database.Entity
 
     public Artist? ArtistProfile { get; set; }
     public List<Audio>? Favourites { get; set; }
+    public List<LoginLocation>? LoginLocations { get; set; }
     public List<SupportTicket>? AssignedTickets { get; set; }
     public List<SupportTicket>? RequestedTickets { get; set; }
     public List<SupportTicketMessage>? TicketMessages { get; set; }
+
+    public bool VerifyPassword(string password) {
+      // TODO: password hashing
+      return this.Password == password;
+    }
 
     public bool ChangePassword(string newPassword) {
       // 1. Validate the password

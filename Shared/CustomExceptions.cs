@@ -36,7 +36,7 @@ namespace AudioArchive.Shared
   }
 
   public class UnauthorizedException(string Message, string Target)
-    : APIException(Message, StatusCodes.Status400BadRequest)
+    : APIException(Message, StatusCodes.Status401Unauthorized)
   {
     public string Target { get; } = Target;
   }

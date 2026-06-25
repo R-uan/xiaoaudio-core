@@ -1,5 +1,5 @@
 using System.Text.Json.Serialization;
-using AudioArchive.Models;
+using AudioArchive.Modules.Artists.Requests;
 
 namespace AudioArchive.Database.Entity
 {
@@ -20,6 +20,7 @@ namespace AudioArchive.Database.Entity
       return new Artist {
         Id = Guid.NewGuid(),
         Name = request.Name,
+        InActivity = true
       };
     }
   }

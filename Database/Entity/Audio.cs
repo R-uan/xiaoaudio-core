@@ -1,5 +1,5 @@
 using System.Text.Json.Serialization;
-using AudioArchive.Models;
+using AudioArchive.Modules.Audios.Requests;
 
 namespace AudioArchive.Database.Entity
 {
@@ -25,7 +25,7 @@ namespace AudioArchive.Database.Entity
 
     public static Audio FromRequest(PostAudioRequest request, Artist artist) {
       var audioId = Guid.NewGuid();
-
+      var timeNow = DateTime.UtcNow;
       var metadata = new AudioMetadata {
         Id = Guid.NewGuid(),
         Duration = request.Duration,
@@ -38,7 +38,8 @@ namespace AudioArchive.Database.Entity
       var audio = new Audio {
         Id = audioId,
         Artist = artist,
-        AddedAt = DateTime.UtcNow,
+        AddedAt = timeNow,
+        UpdatedAt = timeNow,
         Local = request.Local,
         Link = request.Link,
         Source = request.Source,

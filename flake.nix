@@ -1,5 +1,5 @@
 {
-  description = "Audio Archive";
+  description = "CSharp Environment";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -19,7 +19,6 @@
           dotnet-sdk_10
           netcoredbg
           dotnet-ef
-          roslyn-ls
           omnisharp-roslyn
         ];
 
