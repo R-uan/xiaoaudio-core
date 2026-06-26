@@ -61,5 +61,9 @@ namespace AudioArchive.Database.Entity
       this.ArtistProfile = artist;
       this.ArtistProfileId = artist.Id;
     }
+
+    public void AddFavourite(Audio audio) {
+      (this.Favourites ??= []).Add(audio);
+    }
   }
 }

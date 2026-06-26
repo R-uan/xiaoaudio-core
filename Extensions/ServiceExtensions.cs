@@ -2,6 +2,7 @@ using AudioArchive.Shared;
 using AudioArchive.Database;
 using AudioArchive.Infrastructure.Caching;
 using AudioArchive.Infrastructure.Settings;
+using AudioArchive.Infrastructure.Identity;
 using AudioArchive.Infrastructure.Providers;
 
 using AudioArchive.Modules.Core.Services;
@@ -10,9 +11,12 @@ using AudioArchive.Modules.Audios.Services;
 using AudioArchive.Modules.Artists.Services;
 using AudioArchive.Modules.Support.Services;
 
+using System.Text;
 using StackExchange.Redis;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace AudioArchive.Extensions
 {
@@ -41,6 +45,7 @@ namespace AudioArchive.Extensions
       services.AddExceptionHandler<GlobalExceptionHandler>();
       services.AddScoped<IAccountService, AccountService>();
       services.AddScoped<ISupportService, SupportService>();
+      services.AddScoped<ICurrentAccount, CurrentAccount>();
       services.AddScoped<IAuthenticationProvider, AuthenticationProvider>();
       services.AddTransient<IEmailSender, EmailProvider>();
       return services;
@@ -55,6 +60,29 @@ namespace AudioArchive.Extensions
       services.AddCors(options =>
           options.AddPolicy("AllowAll", policy =>
               policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
+      return services;
+    }
+
+    public static IServiceCollection AddAuthentication(this IServiceCollection services, IConfiguration configuration) {
+      var jwt = configuration.GetSection("JwtSettings").Get<JwtSettings>()
+        ?? throw new InvalidOperationException("JwtSettings not configured.");
+      services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));
+
+      services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        .AddJwtBearer(options => {
+          options.TokenValidationParameters = new TokenValidationParameters {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidIssuer = jwt.Issuer,
+            ValidAudience = jwt.Audience,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(
+              Encoding.UTF8.GetBytes(jwt.SigningKey)
+            )
+          };
+        });
+        
       return services;
     }
   }

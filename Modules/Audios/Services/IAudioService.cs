@@ -10,5 +10,7 @@ namespace AudioArchive.Modules.Audios.Services
     Task<List<Tag>> ProcessTags(List<string> targetTags);
     Task<Audio> UpdateAudio(Guid id, PatchAudioRequest request);
     Task<List<Audio>> QueryAudios(AudioSearchParams parameters);
+    
+    Task<bool> FavouriteAudioAsync(Guid audioGuid);
   }
 }

@@ -14,6 +14,7 @@ namespace AudioArchive.Database.Entity
     public string? Link { get; set; } 
     public required bool Local { get; set; } // If the source is a path or a link
     public required string Source { get; set; }
+    public required bool IsPrivate { get; set; } = false;
 
     public required Artist Artist { get; set; }
     public required DateTime AddedAt { get; set; }
@@ -40,6 +41,7 @@ namespace AudioArchive.Database.Entity
         Artist = artist,
         AddedAt = timeNow,
         UpdatedAt = timeNow,
+        IsPrivate = false,
         Local = request.Local,
         Link = request.Link,
         Source = request.Source,

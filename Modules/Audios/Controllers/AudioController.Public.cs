@@ -1,35 +1,19 @@
-using AudioArchive.Database;
-using AudioArchive.Infrastructure.Caching;
+using AudioArchive.Shared;
+using Microsoft.AspNetCore.Mvc;
 using AudioArchive.Modules.Audios.Requests;
 using AudioArchive.Modules.Audios.Responses;
 using AudioArchive.Modules.Audios.Responses.Views;
-using AudioArchive.Modules.Audios.Services;
-using AudioArchive.Shared;
-using Microsoft.AspNetCore.Mvc;
+
 using Microsoft.EntityFrameworkCore;
 
 namespace AudioArchive.Modules.Audios.Controllers
 {
-  [ApiController]
-  [Route("api/audio")]
-  public class AudioController : ControllerBase
+  public partial class AudioController : ControllerBase
   {
-    private readonly IAudioService audioService;
-    private readonly ICachingService cachingService;
-    private readonly DatabaseContext databaseContext;
-
-    private readonly string CacheGroup = "audio";
-
-    public AudioController(DatabaseContext database, IAudioService service, ICachingService caching) {
-      this.databaseContext = database;
-      this.audioService = service;
-      this.cachingService = caching;
-    }
-
     [HttpGet]
     public async Task<IActionResult> GetAudios() {
-      var audios = await cachingService.GetAsync(CacheGroup, "all", () => {
-        return databaseContext.Audios
+      var audios = await _cachingService.GetAsync(CacheGroup, "all", () => {
+        return _databaseContext.Audios
               .Include(a => a.Metadata)
               .Select(audio => new AudioView {
                 Id = audio.Id,
@@ -64,7 +48,7 @@ namespace AudioArchive.Modules.Audios.Controllers
           Target: audioId
         );
 
-      var audio = await databaseContext.Audios.Include(a => a.Artist)
+      var audio = await _databaseContext.Audios.Include(a => a.Artist)
         .Include(a => a.Metadata).ThenInclude(m => m.Tags)
         .Where(a => a.Id == audioGuid).FirstOrDefaultAsync() ??
           throw new NotFoundException(
@@ -77,7 +61,7 @@ namespace AudioArchive.Modules.Audios.Controllers
 
     [HttpPost]
     public async Task<IActionResult> PostAudio([FromBody] PostAudioRequest request) {
-      return base.Ok(await audioService.StoreAudio(request));
+      return base.Ok(await _audioService.StoreAudio(request));
     }
 
     [HttpPost("bulk")]
@@ -88,7 +72,7 @@ namespace AudioArchive.Modules.Audios.Controllers
 
       foreach (var entry in request) {
         try {
-          var audio = await audioService.StoreAudio(entry);
+          var audio = await _audioService.StoreAudio(entry);
           savedAudios.Add(audio);
         } catch (Exception e) {
           if (e is DuplicatedException) {
@@ -116,14 +100,14 @@ namespace AudioArchive.Modules.Audios.Controllers
           Target: audioId
         );
 
-      var audio = await databaseContext.Audios.FindAsync(audioGuid) ??
+      var audio = await _databaseContext.Audios.FindAsync(audioGuid) ??
         throw new NotFoundException(
           Message: "Could not find audio entry.",
           Target: audioId
         );
 
-      databaseContext.Audios.Remove(audio);
-      await databaseContext.SaveChangesAsync();
+      _databaseContext.Audios.Remove(audio);
+      await _databaseContext.SaveChangesAsync();
 
       return Ok(new {
         Message = "Audio successfully deleted.",
@@ -134,8 +118,8 @@ namespace AudioArchive.Modules.Audios.Controllers
     [HttpGet("q")]
     public async Task<IActionResult> QueryAudios([FromQuery] AudioSearchParams parameters) {
       var key = HttpContext.Request.QueryString.ToString();
-      var audios = (await cachingService.GetAsync(CacheGroup, key, () => {
-        return audioService.QueryAudios(parameters);
+      var audios = (await _cachingService.GetAsync(CacheGroup, key, () => {
+        return _audioService.QueryAudios(parameters);
       }))?.Select(AudioView.From).ToList();
 
       return base.Ok(new {
@@ -147,7 +131,7 @@ namespace AudioArchive.Modules.Audios.Controllers
     [HttpPatch("{audioId}")]
     public async Task<IActionResult>
       PatchAudio([FromRoute] Guid audioId, [FromBody] PatchAudioRequest request) {
-      var operation = await audioService.UpdateAudio(audioId, request);
+      var operation = await _audioService.UpdateAudio(audioId, request);
       var audioView = AudioView.From(operation);
       return base.Ok(audioView);
     }

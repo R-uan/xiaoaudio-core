@@ -1,26 +1,26 @@
 using System.Data;
-using AudioArchive.Database;
 using AudioArchive.Database.Entity;
 using AudioArchive.Modules.Audios.Requests;
 using AudioArchive.Modules.Audios.Responses;
 using AudioArchive.Modules.Audios.Responses.Views;
+
 using AudioArchive.Shared;
 using Microsoft.EntityFrameworkCore;
 
 namespace AudioArchive.Modules.Audios.Services
 {
-  public class AudioService(DatabaseContext database) : IAudioService
+  public partial class AudioService : IAudioService
   {
     public async Task<List<Tag>> ProcessTags(List<string> targetTags) {
       var lowerTargetTags = targetTags.Select(t => t.ToLower().Trim()).ToList();
-      var existingTags = await database.Tags.Where(t => lowerTargetTags.Contains(t.Name.ToLower()))
+      var existingTags = await _databaseContext.Tags.Where(t => lowerTargetTags.Contains(t.Name.ToLower()))
         .ToListAsync();
       var newTags = lowerTargetTags.Where(t => !existingTags.Exists(tag => tag.Name.ToLower() == t))
         .Select(t => new Tag(t)).ToList();
 
       if (newTags.Count != 0) {
-        await database.Tags.AddRangeAsync(newTags);
-        await database.SaveChangesAsync();
+        await _databaseContext.Tags.AddRangeAsync(newTags);
+        await _databaseContext.SaveChangesAsync();
         existingTags.AddRange(newTags);
       }
 
@@ -28,7 +28,7 @@ namespace AudioArchive.Modules.Audios.Services
     }
 
     public async Task<PostAudioResult> StoreAudio(PostAudioRequest request) {
-      var artist = await database.Artists
+      var artist = await _databaseContext.Artists
           .Include(a => a.Audios)
           .Where(a => a.Name == request.Artist)
           .FirstOrDefaultAsync();
@@ -45,7 +45,7 @@ namespace AudioArchive.Modules.Audios.Services
       bool isNew = true;
 
       if (artist.Audios != null && artist.Audios.Any(a => a.Source.Contains(audio.Source))) {
-        audio = await database.Audios
+        audio = await _databaseContext.Audios
             .Include(a => a.Metadata)
             .ThenInclude(m => m.Tags)
             .Where(a => a.Source == request.Source)
@@ -68,15 +68,15 @@ namespace AudioArchive.Modules.Audios.Services
       }
 
       if (isNew) {
-        await database.Audios.AddAsync(audio);
+        await _databaseContext.Audios.AddAsync(audio);
       }
 
-      await database.SaveChangesAsync();
+      await _databaseContext.SaveChangesAsync();
       return new PostAudioResult { Audio = AudioView.From(audio), IsNew = isNew };
     }
 
     public async Task<Audio> UpdateAudio(Guid audioId, PatchAudioRequest request) {
-      var audio = await database.Audios
+      var audio = await _databaseContext.Audios
         .Include(a => a.Metadata)
           .ThenInclude(m => m.Tags)
         .Include(a => a.Artist)
@@ -93,7 +93,7 @@ namespace AudioArchive.Modules.Audios.Services
       if (request.Local.HasValue) audio.Local = request.Local.Value;
 
       if (!string.IsNullOrEmpty(request.Artist)) {
-        var artist = await database.Artists
+        var artist = await _databaseContext.Artists
           .Where(a => a.Name == request.Artist)
           .FirstOrDefaultAsync();
 
@@ -104,7 +104,7 @@ namespace AudioArchive.Modules.Audios.Services
             InActivity = true
           };
 
-          await database.Artists.AddAsync(artist);
+          await _databaseContext.Artists.AddAsync(artist);
         }
 
         audio.Artist = artist;
@@ -125,12 +125,12 @@ namespace AudioArchive.Modules.Audios.Services
       }
 
       audio.UpdatedAt = DateTime.UtcNow;
-      await database.SaveChangesAsync();
+      await _databaseContext.SaveChangesAsync();
       return audio;
     }
 
     public async Task<List<Audio>> QueryAudios(AudioSearchParams parameters) {
-      var query = database.Audios
+      var query = _databaseContext.Audios
           .Include(a => a.Artist)
           .Include(a => a.Metadata)
               .ThenInclude(m => m.Tags)
