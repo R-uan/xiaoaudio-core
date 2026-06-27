@@ -11,7 +11,6 @@ namespace AudioArchive.Database
     public DbSet<Tag> Tags { get; set; }
     public DbSet<Audio> Audios { get; set; }
     public DbSet<Playlist> Playlists { get; set; }
-    public DbSet<ArtistSocial> ArtistSocials { get; set; }
     public DbSet<AudioMetadata> AudioMetadata { get; set; }
     public DbSet<LoginLocation> LoginLocations { get; set; }
     public DbSet<SupportTicket> SupportTickets { get; set; }
@@ -72,12 +71,6 @@ namespace AudioArchive.Database
           .UsingEntity(j => {
             j.ToTable("playlist_audios");
           });
-      });
-
-      modelBuilder.Entity<ArtistSocial>(socials => {
-        socials.ToTable("artist_socials");
-        socials.HasOne(s => s.Artist)
-               .WithMany(a => a.Socials);
       });
       
       modelBuilder.Entity<Account>(user => {

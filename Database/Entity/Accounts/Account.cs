@@ -11,10 +11,10 @@ namespace AudioArchive.Database.Entity
 
     public bool VerifiedArtist { get; set; } = false;
     public bool VerifiedAccount { get; set; } = false;
-
+    
     public Guid? ArtistProfileId { get; set; }
-
     public Artist? ArtistProfile { get; set; }
+    
     public ICollection<Audio> Favourites { get; set; } = [];
     public List<LoginLocation>? LoginLocations { get; set; }
     public List<SupportTicket>? AssignedTickets { get; set; }

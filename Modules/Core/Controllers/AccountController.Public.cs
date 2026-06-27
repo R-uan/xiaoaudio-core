@@ -5,9 +5,7 @@ using AudioArchive.Modules.Core.Services;
 namespace AudioArchive.Modules.Core.Controllers {
   [ApiController]
   [Route("api/account")]
-  public partial class AccountController(IAccountService accountService) : ControllerBase {
-    private readonly IAccountService _accountService = accountService;
-
+  public partial class AccountController : ControllerBase {
     [HttpPost("authentication")]
     public async Task<IActionResult> AuthenticateAccount([FromBody] AuthenticationRequest request) {
       var token = await this._accountService.AuthenticateAccountAsync(request);
