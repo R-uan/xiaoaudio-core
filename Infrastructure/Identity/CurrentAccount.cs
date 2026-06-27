@@ -1,6 +1,7 @@
 using AudioArchive.Database;
 using System.Security.Claims;
 using AudioArchive.Database.Entity;
+using Microsoft.EntityFrameworkCore;
 using System.IdentityModel.Tokens.Jwt;
 
 namespace AudioArchive.Infrastructure.Identity
@@ -20,13 +21,17 @@ namespace AudioArchive.Infrastructure.Identity
       if (_cached is not null) return _cached;
 
       var id = _http.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier)
-          ?? throw new UnauthorizedAccessException("Not authenticated.");
+        ?? throw new UnauthorizedAccessException("Not authenticated.");
 
       if (!int.TryParse(id, out var accountId))
         throw new UnauthorizedAccessException($"Invalid subject claim: '{id}'");
 
-      _cached = await _db.Accounts.FindAsync(accountId)
-          ?? throw new UnauthorizedAccessException("Account not found.");
+        _cached = await _db.Accounts
+          .Where(a => a.Id == accountId)
+          .Include(a => a.Favourites)
+            .ThenInclude(f => f.Metadata)  // f is Audio here, not Account
+          .FirstOrDefaultAsync() ?? 
+          throw new UnauthorizedAccessException("Account not found.");
 
       return _cached;
     }

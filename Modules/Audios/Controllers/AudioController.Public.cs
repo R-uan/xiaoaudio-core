@@ -2,7 +2,6 @@ using AudioArchive.Shared;
 using Microsoft.AspNetCore.Mvc;
 using AudioArchive.Modules.Audios.Requests;
 using AudioArchive.Modules.Audios.Responses;
-using AudioArchive.Modules.Audios.Responses.Views;
 
 using Microsoft.EntityFrameworkCore;
 
@@ -15,7 +14,7 @@ namespace AudioArchive.Modules.Audios.Controllers
       var audios = await _cachingService.GetAsync(CacheGroup, "all", () => {
         return _databaseContext.Audios
               .Include(a => a.Metadata)
-              .Select(audio => new AudioView {
+              .Select(audio => new AudioResponse {
                 Id = audio.Id,
                 Title = audio.Title,
                 Artist = audio.Artist.Name,
@@ -24,7 +23,7 @@ namespace AudioArchive.Modules.Audios.Controllers
                 Local = audio.Local,
                 AddedAt = audio.AddedAt,
                 UpdatedAt = audio.UpdatedAt,
-                Metadata = new AudioMetadataView {
+                Metadata = new MetadataResponse {
                   Duration = audio.Metadata.Duration,
                   Genre = audio.Metadata.Genre,
                   ReleaseYear = audio.Metadata.ReleaseYear,
@@ -56,84 +55,20 @@ namespace AudioArchive.Modules.Audios.Controllers
             Target: audioId
           );
 
-      return base.Ok(AudioView.From(audio));
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> PostAudio([FromBody] PostAudioRequest request) {
-      return base.Ok(await _audioService.StoreAudio(request));
-    }
-
-    [HttpPost("bulk")]
-    public async Task<IActionResult> PostMultipleAudios([FromBody] List<PostAudioRequest> request) {
-      List<PostAudioResult> savedAudios = [];
-      List<string> failedAdditions = [];
-      List<string> duplicatedAudios = [];
-
-      foreach (var entry in request) {
-        try {
-          var audio = await _audioService.StoreAudio(entry);
-          savedAudios.Add(audio);
-        } catch (Exception e) {
-          if (e is DuplicatedException) {
-            duplicatedAudios.Add(entry.Link ?? entry.Source);
-            continue;
-          } else {
-            duplicatedAudios.Add(entry.Link ?? entry.Source);
-            continue;
-          }
-        }
-      }
-
-      return base.Ok(new {
-        SavedAudios = savedAudios,
-        FailedAdditions = failedAdditions,
-        DuplicatedAudios = duplicatedAudios,
-      });
-    }
-
-    [HttpDelete("{audioId}")]
-    public async Task<IActionResult> DeleteAudio([FromRoute] string audioId) {
-      if (!Guid.TryParse(audioId, out var audioGuid))
-        throw new BadRequestException(
-          Message: "Could not parse given string into a valid guid.",
-          Target: audioId
-        );
-
-      var audio = await _databaseContext.Audios.FindAsync(audioGuid) ??
-        throw new NotFoundException(
-          Message: "Could not find audio entry.",
-          Target: audioId
-        );
-
-      _databaseContext.Audios.Remove(audio);
-      await _databaseContext.SaveChangesAsync();
-
-      return Ok(new {
-        Message = "Audio successfully deleted.",
-        Target = audioId
-      });
+      return base.Ok(AudioResponse.From(audio));
     }
 
     [HttpGet("q")]
     public async Task<IActionResult> QueryAudios([FromQuery] AudioSearchParams parameters) {
       var key = HttpContext.Request.QueryString.ToString();
       var audios = (await _cachingService.GetAsync(CacheGroup, key, () => {
-        return _audioService.QueryAudios(parameters);
-      }))?.Select(AudioView.From).ToList();
+        return _audioService.AudioQueryAsync(parameters);
+      }))?.Select(AudioResponse.From).ToList();
 
       return base.Ok(new {
         Data = audios,
         Count = audios == null ? 0 : audios.Count
       });
-    }
-
-    [HttpPatch("{audioId}")]
-    public async Task<IActionResult>
-      PatchAudio([FromRoute] Guid audioId, [FromBody] PatchAudioRequest request) {
-      var operation = await _audioService.UpdateAudio(audioId, request);
-      var audioView = AudioView.From(operation);
-      return base.Ok(audioView);
     }
   }
 }

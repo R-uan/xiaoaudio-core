@@ -1,8 +1,8 @@
 using AudioArchive.Database.Entity;
 
-namespace AudioArchive.Modules.Audios.Responses.Views
+namespace AudioArchive.Modules.Audios.Responses
 {
-  public class AudioMetadataView
+  public class MetadataResponse
   {
     public int? ReleaseYear { get; set; }
     public string? Genre { get; set; }
@@ -10,8 +10,8 @@ namespace AudioArchive.Modules.Audios.Responses.Views
 
     public List<string>? Tags { get; set; }
 
-    public static AudioMetadataView From(AudioMetadata metadata) {
-      return new AudioMetadataView {
+    public static MetadataResponse From(AudioMetadata metadata) {
+      return new MetadataResponse {
         Genre = metadata.Genre,
         Duration = metadata.Duration,
         ReleaseYear = metadata.ReleaseYear,

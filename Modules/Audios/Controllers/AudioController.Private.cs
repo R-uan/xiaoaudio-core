@@ -9,7 +9,7 @@ namespace AudioArchive.Modules.Audios.Controllers
   {
     [Authorize]
     [HttpGet("favourite/{audioId}")]
-    public async Task<IActionResult> FavouriteAudioAsync(string audioId) {
+    public async Task<IActionResult> ToggleFavouriteAsync(string audioId) {
       if (!Guid.TryParse(audioId, out var audioGuid)) {
         throw new BadRequestException(
           Message: "Invalid audio id given.",
@@ -18,7 +18,19 @@ namespace AudioArchive.Modules.Audios.Controllers
       }
       
       return Ok(new { 
-        Success = await this._audioService.FavouriteAudioAsync(audioGuid) 
+        Success = true,
+        Data = new { 
+          Favourited = await this._audioService.ToggleFavouriteAudioAsync(audioGuid) 
+        }
+      });
+    }
+    
+    [Authorize]
+    [HttpGet("favourite")]
+    public async Task<IActionResult> GetFavouritesAsync() {
+      return Ok(new {
+        Success = true,
+        Data = await this._audioService.ListFavouritesAync()
       });
     }
   }
