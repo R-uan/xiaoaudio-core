@@ -11,22 +11,19 @@ namespace AudioArchive.Database
     public DbSet<Tag> Tags { get; set; }
     public DbSet<Audio> Audios { get; set; }
     public DbSet<Playlist> Playlists { get; set; }
+    public DbSet<ArtistSocial> ArtistSocials { get; set; }
     public DbSet<AudioMetadata> AudioMetadata { get; set; }
     public DbSet<LoginLocation> LoginLocations { get; set; }
     public DbSet<SupportTicket> SupportTickets { get; set; }
+    public DbSet<VerificationCode> VerificationCodes { get; set; }
     public DbSet<SupportTicketMessage> SupportTicketMessages { get; set; }
     public DbSet<SupportTicketAttachment> SupportTicketAttachments { get; set; }
-    public DbSet<VerificationCode> VerificationCodes { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) {
       modelBuilder.Entity<Artist>(artist => {
         artist.ToTable("artists");
         artist.HasKey(a => a.Id);
         artist.HasIndex(a => a.Name).IsUnique();
-        artist.HasMany(a => a.Socials)
-              .WithOne(s => s.Artist)
-              .HasForeignKey(s => s.ArtistId)
-              .OnDelete(DeleteBehavior.Cascade);
         artist.HasMany(a => a.Audios)
               .WithOne(a => a.Artist)
               .HasForeignKey(a => a.ArtistId)
@@ -36,14 +33,14 @@ namespace AudioArchive.Database
               .HasForeignKey<Artist>(a => a.VerifiedAccountId)
               .OnDelete(DeleteBehavior.SetNull);
       });
-      
+
       modelBuilder.Entity<Audio>(audio => {
         audio.ToTable("audios");
         audio.HasKey(a => a.Id);
         audio.HasOne(a => a.Metadata)
-             .WithOne(m => m.Audio)
-             .HasForeignKey<AudioMetadata>(m => m.AudioId)
-             .OnDelete(DeleteBehavior.Cascade);
+          .WithOne(m => m.Audio)
+        .HasForeignKey<AudioMetadata>(m => m.AudioId)
+        .OnDelete(DeleteBehavior.Cascade);
       });
 
       modelBuilder.Entity<AudioMetadata>(metadata => {
@@ -51,11 +48,11 @@ namespace AudioArchive.Database
         metadata.HasIndex(am => am.AudioId);
         metadata.HasKey(m => m.Id);
         metadata.HasMany(m => m.Tags)
-                .WithMany(t => t.AudioMetadatas)
-                .UsingEntity(j => {
-                  j.ToTable("audio_metadata_tags");
-                  j.HasIndex("TagsId");
-                });
+          .WithMany(t => t.AudioMetadatas)
+          .UsingEntity(j => {
+            j.ToTable("audio_metadata_tags");
+            j.HasIndex("TagsId");
+          });
       });
 
       modelBuilder.Entity<Tag>(tag => {
@@ -72,74 +69,83 @@ namespace AudioArchive.Database
             j.ToTable("playlist_audios");
           });
       });
-      
-      modelBuilder.Entity<Account>(user => {
-        user.ToTable("accounts");
-        user.HasKey(u => u.Id);
-        user.HasIndex(u => u.Email).IsUnique();
-        user.HasIndex(u => u.Username).IsUnique();
-        user.HasMany(u => u.Favourites)
-            .WithMany()
-            .UsingEntity(j => j.ToTable("user_favourite_audios"));
+
+      modelBuilder.Entity<ArtistSocial>(social => {
+        social.ToTable("artist_socials");
+        social.HasKey(s => s.Id);
+        social.HasOne(s => s.Artist)
+          .WithMany(a => a.Socials)
+          .HasForeignKey(s => s.ArtistId)
+          .OnDelete(DeleteBehavior.Cascade);
+      });
+
+      modelBuilder.Entity<Account>(account => {
+        account.ToTable("accounts");
+        account.HasKey(a => a.Id);
+        account.HasIndex(a => a.Email).IsUnique();
+        account.HasIndex(a => a.Username).IsUnique();
+        account.HasMany(a => a.Favourites)
+          .WithMany()
+          .UsingEntity(j => j.ToTable("user_favourite_audios"));
       });
 
       modelBuilder.Entity<SupportTicket>(ticket => {
         ticket.ToTable("support_tickets");
         ticket.HasKey(t => t.Id);
         ticket.Property(t => t.Type)
-              .HasConversion<string>();
+          .HasConversion<string>();
         ticket.Property(t => t.Status)
-              .HasConversion<string>();
+          .HasConversion<string>();
         ticket.HasOne(t => t.Requester)
-              .WithMany(u => u.RequestedTickets)
-              .HasForeignKey(t => t.RequesterId)
-              .OnDelete(DeleteBehavior.Restrict);
+          .WithMany(u => u.RequestedTickets)
+          .HasForeignKey(t => t.RequesterId)
+          .OnDelete(DeleteBehavior.Restrict);
         ticket.HasOne(t => t.Representative)
-              .WithMany(u => u.AssignedTickets)
-              .HasForeignKey(t => t.RepresentativeId)
-              .OnDelete(DeleteBehavior.SetNull);
+          .WithMany(u => u.AssignedTickets)
+          .HasForeignKey(t => t.RepresentativeId)
+          .OnDelete(DeleteBehavior.SetNull);
         ticket.HasMany(t => t.Attachments)
-              .WithOne(a => a.SupportTicket)
-              .HasForeignKey(a => a.SupportTicketId)
-              .OnDelete(DeleteBehavior.Cascade);
+          .WithOne(a => a.SupportTicket)
+          .HasForeignKey(a => a.SupportTicketId)
+          .OnDelete(DeleteBehavior.Cascade);
         ticket.HasMany(t => t.Messages)
-              .WithOne(m => m.SupportTicket)
-              .HasForeignKey(m => m.SupportTicketId)
-              .OnDelete(DeleteBehavior.Cascade);
+          .WithOne(m => m.SupportTicket)
+          .HasForeignKey(m => m.SupportTicketId)
+          .OnDelete(DeleteBehavior.Cascade);
       });
-      
+
       modelBuilder.Entity<SupportTicketAttachment>(attachment => {
         attachment.ToTable("support_ticket_attachments");
         attachment.HasKey(a => a.Id);
       });
-      
+
       modelBuilder.Entity<SupportTicketMessage>(message => {
         message.ToTable("support_ticket_messages");
         message.HasKey(m => m.Id);
         message.HasOne(m => m.User)
-               .WithMany(u => u.TicketMessages)
-               .HasForeignKey(m => m.UserId)
-               .OnDelete(DeleteBehavior.Restrict);
+          .WithMany(u => u.TicketMessages)
+          .HasForeignKey(m => m.UserId)
+          .OnDelete(DeleteBehavior.Restrict);
       });
 
       modelBuilder.Entity<LoginLocation>(location => {
         location.ToTable("login_locations");
         location.HasKey(l => l.Id);
         location.HasOne(l => l.Account)
-                .WithMany(u => u.LoginLocations)
-                .HasForeignKey(l => l.AccountId)
-                .OnDelete(DeleteBehavior.Cascade);
+          .WithMany(u => u.LoginLocations)
+          .HasForeignKey(l => l.AccountId)
+          .OnDelete(DeleteBehavior.Cascade);
       });
 
       modelBuilder.Entity<VerificationCode>(code => {
         code.ToTable("verification_codes");
         code.HasKey(c => c.Id);
         code.Property(c => c.Type)
-            .HasConversion<string>();
+          .HasConversion<string>();
         code.HasOne(c => c.Account)
-            .WithMany()
-            .HasForeignKey(c => c.AccountId)
-            .OnDelete(DeleteBehavior.Cascade);
+          .WithMany()
+          .HasForeignKey(c => c.AccountId)
+          .OnDelete(DeleteBehavior.Cascade);
       });
 
       base.OnModelCreating(modelBuilder);

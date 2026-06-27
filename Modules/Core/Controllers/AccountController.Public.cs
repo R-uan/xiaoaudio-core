@@ -1,24 +1,20 @@
 using Microsoft.AspNetCore.Mvc;
 using AudioArchive.Modules.Core.Requests;
-using AudioArchive.Modules.Core.Services;
 
-namespace AudioArchive.Modules.Core.Controllers {
-  [ApiController]
-  [Route("api/account")]
-  public partial class AccountController : ControllerBase {
+namespace AudioArchive.Modules.Core.Controllers
+{
+  public partial class AccountController
+  {
     [HttpPost("authentication")]
     public async Task<IActionResult> AuthenticateAccount([FromBody] AuthenticationRequest request) {
-      var token = await this._accountService.AuthenticateAccountAsync(request);
+      var token = await _accountService.AuthenticateAccountAsync(request);
       return Ok(new { Success = true, Data = new { Token = token } });
     }
 
     [HttpPost("registration")]
     public async Task<IActionResult> RegisterAccount([FromBody] RegisterAccountRequest request) {
-      var account = this._accountService.RegisterAccountAsync(request);
-      return Ok(new {
-        Success = true,
-        Date = account
-      });
+      var account = await _accountService.RegisterAccountAsync(request);
+      return Ok(new { Success = true, Data = account });
     }
 
     [HttpPost("verification")]
@@ -26,18 +22,15 @@ namespace AudioArchive.Modules.Core.Controllers {
       if (type.ToLower() == "email") {
         return Ok(new {
           Success = true,
-          Available = this._accountService.VerifyEmailAvailabilityAsync(value),
+          Available = await _accountService.VerifyEmailAvailabilityAsync(value),
         });
       } else if (type.ToLower() == "username") {
         return Ok(new {
           Success = true,
-          Available = this._accountService.VerifyUsernameAvailabilityAsync(value),
+          Available = await _accountService.VerifyUsernameAvailabilityAsync(value),
         });
       } else {
-        return BadRequest(new {
-          Success = false,
-          Message = "Invalid value."
-        });
+        return BadRequest(new { Success = false, Message = "Invalid value." });
       }
     }
   }

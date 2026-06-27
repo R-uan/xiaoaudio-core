@@ -9,6 +9,7 @@ using AudioArchive.Modules.Core.Services;
 using AudioArchive.Modules.Tags.Services;
 using AudioArchive.Modules.Audios.Services;
 using AudioArchive.Modules.Artists.Services;
+using AudioArchive.Modules.Playlists.Services;
 using AudioArchive.Modules.Support.Services;
 
 using System.Text;
@@ -39,8 +40,10 @@ namespace AudioArchive.Extensions
 
     public static IServiceCollection AddApplicationServices(this IServiceCollection services) {
       services.AddHostedService<TagCleanupService>();
+      services.AddScoped<ITagService, TagService>();
       services.AddScoped<IAudioService, AudioService>();
       services.AddScoped<IArtistService, ArtistService>();
+      services.AddScoped<IPlaylistService, PlaylistService>();
       services.AddSingleton<ICachingService, CachingService>();
       services.AddExceptionHandler<GlobalExceptionHandler>();
       services.AddScoped<IAccountService, AccountService>();

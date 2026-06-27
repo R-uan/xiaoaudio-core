@@ -6,16 +6,13 @@ using AudioArchive.Modules.Support.Requests;
 
 namespace AudioArchive.Modules.Support.Services
 {
-  public class SupportService(IHttpContextAccessor httpContext, DatabaseContext database) : ISupportService
+  public partial class SupportService
   {
-    private readonly DatabaseContext _db = database;
-    private readonly IHttpContextAccessor _httpContext = httpContext;
-    private Account CurrentUser => _httpContext.HttpContext?.Items["CurrentUser"] as Account
-      ?? throw new UnauthorizedAccessException("Not authenticated");
+    public async Task<SupportTicket> OpenTicketAsync(CreateTicketRequest request) {
+      var currentUser = await _currentAccount.GetAsync();
 
-    public async Task<SupportTicket> OpenTicket(CreateTicketRequest request) {
       var user = await this._db.Accounts.Include(u => u.RequestedTickets)
-        .FirstOrDefaultAsync(u => u.Id == CurrentUser.Id)
+        .FirstOrDefaultAsync(u => u.Id == currentUser.Id)
         ?? throw new NotFoundException(
           Message: "User not found",
           Target: "SupportService::CreateNewTicket"
@@ -40,14 +37,16 @@ namespace AudioArchive.Modules.Support.Services
       return ticket;
     }
 
-    public async Task SendTicketMessage(SendTicketMessageRequest request) {
+    public async Task SendTicketMessageAsync(SendTicketMessageRequest request) {
+      var currentUser = await _currentAccount.GetAsync();
+
       var ticket = await this._db.SupportTickets.FindAsync(request.TicketId)
         ?? throw new NotFoundException(
           Message: "Ticket not found.",
           Target: "SupportService::SendTicketMessage"
         );
 
-      if (ticket.Requester != this.CurrentUser) {
+      if (ticket.Requester != currentUser) {
         throw new UnauthorizedException(
           Message: "You do not own this ticket.",
           Target: "SupportService::SendTicketMessage"
@@ -56,8 +55,8 @@ namespace AudioArchive.Modules.Support.Services
 
       var message = new SupportTicketMessage {
         Content = request.Message,
-        User = this.CurrentUser,
-        UserId = this.CurrentUser.Id,
+        User = currentUser,
+        UserId = currentUser.Id,
         SupportTicket = ticket,
         SupportTicketId = ticket.Id
       };

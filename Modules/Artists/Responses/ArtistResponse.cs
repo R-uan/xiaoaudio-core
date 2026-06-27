@@ -1,10 +1,10 @@
 using AudioArchive.Database.Entity;
 
-namespace AudioArchive.Modules.Artists.Responses.Views
+namespace AudioArchive.Modules.Artists.Responses
 {
   public record TagFrequency(string Name, int Count);
 
-  public class ArtistProfileView
+  public class ArtistResponse
   {
     public required string Name { get; set; }
     public bool InActivity { get; set; }
@@ -13,8 +13,8 @@ namespace AudioArchive.Modules.Artists.Responses.Views
     public int AudioCount { get; set; }
     public List<TagFrequency>? MostFrequentTags { get; set; }
 
-    public static ArtistProfileView From(Artist artist) {
-      return new ArtistProfileView {
+    public static ArtistResponse From(Artist artist) {
+      return new ArtistResponse {
         Name = artist.Name,
         AudioCount = artist.Audios != null ? artist.Audios.Count : 0,
         Nationality = artist.Nationality,

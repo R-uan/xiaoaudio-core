@@ -14,8 +14,8 @@ namespace AudioArchive.Database.Entity
     
     public Guid? ArtistProfileId { get; set; }
     public Artist? ArtistProfile { get; set; }
-    
-    public ICollection<Audio> Favourites { get; set; } = [];
+
+    public ICollection<Audio> Favourites { get; set; } = [];  
     public List<LoginLocation>? LoginLocations { get; set; }
     public List<SupportTicket>? AssignedTickets { get; set; }
     public List<SupportTicket>? RequestedTickets { get; set; }
