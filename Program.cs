@@ -25,6 +25,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MigrateDatabase();
+await app.CreateAdminAccountAsync();
 app.UseMiddleware<CachingMiddleware>();
 
 app.UseAudioStaticFiles(staticFilesPath);

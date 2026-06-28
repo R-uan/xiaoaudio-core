@@ -11,6 +11,7 @@ namespace AudioArchive.Database
     public DbSet<Tag> Tags { get; set; }
     public DbSet<Audio> Audios { get; set; }
     public DbSet<Playlist> Playlists { get; set; }
+    public DbSet<Permission> Permissions { get; set; }
     public DbSet<ArtistSocial> ArtistSocials { get; set; }
     public DbSet<AudioMetadata> AudioMetadata { get; set; }
     public DbSet<LoginLocation> LoginLocations { get; set; }
@@ -147,6 +148,11 @@ namespace AudioArchive.Database
           .HasForeignKey(c => c.AccountId)
           .OnDelete(DeleteBehavior.Cascade);
       });
+
+      modelBuilder.Entity<Account>()
+        .HasMany(a => a.Permissions)
+        .WithMany(p => p.Accounts)
+        .UsingEntity(j => j.ToTable("account_permissions"));
 
       base.OnModelCreating(modelBuilder);
     }

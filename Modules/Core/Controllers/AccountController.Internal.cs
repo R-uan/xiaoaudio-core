@@ -8,8 +8,7 @@ namespace AudioArchive.Modules.Core.Controllers
   {
     [Authorize]
     [HttpPost("password-change")]
-    public async Task<IActionResult> ChangePassword([FromBody] PasswordChangeRequest req)
-    {
+    public async Task<IActionResult> ChangePassword([FromBody] PasswordChangeRequest req) {
       await _accountService.PasswordChangeAsync(req);
       return Ok(new { Success = true });
     }

@@ -1,6 +1,9 @@
 using AudioArchive.Database;
-using Microsoft.AspNetCore.StaticFiles;
+using AudioArchive.Database.Entity;
+using AudioArchive.Infrastructure.Settings;
+
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.FileProviders;
 
 namespace AudioArchive.Extensions
@@ -31,6 +34,45 @@ namespace AudioArchive.Extensions
     public static WebApplication MigrateDatabase(this WebApplication app) {
       using var scope = app.Services.CreateScope();
       scope.ServiceProvider.GetRequiredService<DatabaseContext>().Database.Migrate();
+      return app;
+    }
+
+    public static async Task<WebApplication> CreateAdminAccountAsync(this WebApplication app) {
+      using var scope = app.Services.CreateScope();
+      var db = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
+      var config = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+
+      var settings = config.GetSection("AdministratorAccount").Get<AdminAccountSettings>()
+        ?? throw new InvalidOperationException("AdministratorAccount not configured.");
+
+      var exists = await db.Accounts.AnyAsync(a => a.Username == settings.Username);
+      if (exists) return app;
+
+      var permissions = await db.Permissions.ToListAsync();
+      if (!permissions.Any()) {
+        permissions = [
+          new Permission { Name = "audio:write" },
+          new Permission { Name = "audio:delete" },
+          new Permission { Name = "audio:update" },
+
+          new Permission { Name = "account:read" },
+          new Permission { Name = "account:write" },
+          new Permission { Name = "account:update" },
+          new Permission { Name = "account:delete" },
+        ];
+        db.Permissions.AddRange(permissions);
+      }
+
+      var admin = new Account {
+        Email = settings.Email,
+        Username = settings.Username,
+        Password = settings.Password,
+        Permissions = permissions
+      };
+
+      db.Accounts.Add(admin);
+      await db.SaveChangesAsync();
+
       return app;
     }
   }

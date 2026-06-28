@@ -30,6 +30,7 @@ namespace AudioArchive.Infrastructure.Identity
           .Where(a => a.Id == accountId)
           .Include(a => a.Favourites)
             .ThenInclude(f => f.Metadata)  // f is Audio here, not Account
+          .Include(a => a.Permissions)
           .FirstOrDefaultAsync() ?? 
           throw new UnauthorizedAccessException("Account not found.");
 

@@ -19,6 +19,7 @@ namespace AudioArchive.Database.Entity
     public List<LoginLocation>? LoginLocations { get; set; }
     public List<SupportTicket>? AssignedTickets { get; set; }
     public List<SupportTicket>? RequestedTickets { get; set; }
+    public ICollection<Permission> Permissions { get; set; } = [];
     public List<SupportTicketMessage>? TicketMessages { get; set; }
 
     public bool VerifyPassword(string password) {

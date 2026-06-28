@@ -1,8 +1,8 @@
 using AudioArchive.Shared;
 using AudioArchive.Database;
 using AudioArchive.Infrastructure.Caching;
-using AudioArchive.Infrastructure.Settings;
 using AudioArchive.Infrastructure.Identity;
+using AudioArchive.Infrastructure.Settings;
 using AudioArchive.Infrastructure.Providers;
 
 using AudioArchive.Modules.Core.Services;
@@ -16,6 +16,7 @@ using System.Text;
 using StackExchange.Redis;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 
@@ -48,7 +49,6 @@ namespace AudioArchive.Extensions
       services.AddExceptionHandler<GlobalExceptionHandler>();
       services.AddScoped<IAccountService, AccountService>();
       services.AddScoped<ISupportService, SupportService>();
-      services.AddScoped<ICurrentAccount, CurrentAccount>();
       services.AddScoped<IAuthenticationProvider, AuthenticationProvider>();
       services.AddTransient<IEmailSender, EmailProvider>();
       return services;
@@ -69,6 +69,7 @@ namespace AudioArchive.Extensions
     public static IServiceCollection AddAuthentication(this IServiceCollection services, IConfiguration configuration) {
       var jwt = configuration.GetSection("JwtSettings").Get<JwtSettings>()
         ?? throw new InvalidOperationException("JwtSettings not configured.");
+
       services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));
 
       services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -85,7 +86,21 @@ namespace AudioArchive.Extensions
             )
           };
         });
-        
+
+      services.AddScoped<ICurrentAccount, CurrentAccount>();
+      services.AddScoped<IAuthorizationHandler, PermissionHandler>();
+
+      services.AddAuthorization(options => {
+        options.AddPolicy("audio:write", p => p.AddRequirements(new PermissionRequirement("audio:write")));
+        options.AddPolicy("audio:delete", p => p.AddRequirements(new PermissionRequirement("audio:delete")));
+        options.AddPolicy("audio:update", p => p.AddRequirements(new PermissionRequirement("audio:update")));
+
+        options.AddPolicy("account:read", p => p.AddRequirements(new PermissionRequirement("account:read")));
+        options.AddPolicy("account:write", p => p.AddRequirements(new PermissionRequirement("account:write")));
+        options.AddPolicy("account:update", p => p.AddRequirements(new PermissionRequirement("account:update")));
+        options.AddPolicy("account:delete", p => p.AddRequirements(new PermissionRequirement("account:delete")));
+      });
+
       return services;
     }
   }
