@@ -1,13 +1,15 @@
 using Microsoft.AspNetCore.Mvc;
-using AudioArchive.Database.Entity;
-using AudioArchive.Modules.Core.Requests;
-using AudioArchive.Modules.Core.Responses;
 using Microsoft.AspNetCore.Authorization;
 
 namespace AudioArchive.Modules.Core.Controllers
 {
   public partial class AccountController
   {
-    
+    [Authorize]
+    [HttpGet("verify")]
+    public async Task<IActionResult> VerifyAccount([FromQuery] string? code = null) {
+      var verified = await _accountService.AccountVerificationAsync(code);
+      return this.Ok(new { Success = verified });
+    }
   }
 }

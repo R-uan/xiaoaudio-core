@@ -82,5 +82,13 @@ namespace AudioArchive.Modules.Core.Services
     /// <param name="req">Payload with the email address for the account to reset.</param>
     /// <returns>True if the account exists and a reset code was sent.</returns>
     Task<bool> ForgotPasswordAsync(ForgotPasswordRequest req);
+
+    /// <summary>
+    /// Verifies the current account's email. Call with null to request a new
+    /// verification email, or with a code to confirm the address.
+    /// </summary>
+    /// <param name="verificationCode">The verification code, or null to send a new one.</param>
+    /// <returns>True if the account was verified, false if an email was sent instead.</returns>
+    Task<bool> AccountVerificationAsync(string? verificationCode = null);
   }
 }
