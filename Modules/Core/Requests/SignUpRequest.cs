@@ -1,6 +1,6 @@
 namespace AudioArchive.Modules.Core.Requests
 {
-  public class RegisterAccountRequest
+  public class SignUpRequest
   {
     public required string Email { get; set; }
     public required string Username { get; set; }

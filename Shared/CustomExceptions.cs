@@ -47,4 +47,10 @@ namespace AudioArchive.Shared
     public string Target { get; } = Target;
   }
 
+  public class ExpiredException(string Message, string Target)
+    : APIException(Message, StatusCodes.Status400BadRequest)
+  {
+    public string Target { get; } = Target;
+  }
+
 }

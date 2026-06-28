@@ -14,7 +14,13 @@ namespace AudioArchive.Database.Entity
 
     public DateTime? ExpiresAt { get; set; }
     public DateTime CreatedAt { get; set; }
+    public DateTime? UsedAt { get; set; }
 
+    public void UseCode() {
+      this.UsedAt = DateTime.Now;
+      this.Used = true;
+    }
+    
     public static VerificationCode Create(Account account, CodeType type) {
       return new VerificationCode {
         Account = account,

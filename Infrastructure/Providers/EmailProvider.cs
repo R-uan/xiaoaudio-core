@@ -1,6 +1,7 @@
 using MimeKit;
 using MailKit.Net.Smtp;
 using MailKit.Security;
+using System.Reflection;
 using AudioArchive.Infrastructure.Settings;
 using Microsoft.AspNetCore.Identity.UI.Services;
 
@@ -26,6 +27,19 @@ namespace AudioArchive.Infrastructure.Providers
       await client.ConnectAsync(_settings.Host, _settings.Port, SecureSocketOptions.None);
       await client.SendAsync(message);
       await client.DisconnectAsync(true);
+    }
+
+    public static string Load(string templateName, Dictionary<string, string> placeholders) {
+      var assembly = Assembly.GetExecutingAssembly();
+      var resourceName = assembly.GetManifestResourceNames()
+        .Single(n => n.EndsWith($"{templateName}.html"));
+
+      using var stream = assembly.GetManifestResourceStream(resourceName)!;
+      using var reader = new StreamReader(stream);
+      var html = reader.ReadToEnd();
+
+      return placeholders.Aggregate(html, (current, kv) =>
+        current.Replace($"{{{{{kv.Key}}}}}", kv.Value));
     }
   }
 }
