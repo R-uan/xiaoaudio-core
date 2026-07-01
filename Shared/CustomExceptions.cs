@@ -1,8 +1,10 @@
 namespace AudioArchive.Shared
 {
-  public class APIException(string Message, int StatusCode) : Exception(Message)
+  public class APIException(string message, int StatusCode) : Exception(message)
   {
     public int StatusCode { get; set; } = StatusCode;
+    public new string Message { get; } = message;
+
   }
 
   public class NotFoundException(string Message, string Target) :
@@ -53,4 +55,9 @@ namespace AudioArchive.Shared
     public string Target { get; } = Target;
   }
 
+  public class ConflictException(string Message, string Target)
+    : APIException(Message, StatusCodes.Status409Conflict)
+  {
+    public string Target { get; } = Target;
+  }
 }

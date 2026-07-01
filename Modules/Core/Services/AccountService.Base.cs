@@ -1,5 +1,6 @@
 using AudioArchive.Database;
 using AudioArchive.Modules.Core.Requests;
+using AudioArchive.Modules.Core.Responses;
 using AudioArchive.Infrastructure.Identity;
 using AudioArchive.Infrastructure.Providers;
 
@@ -90,5 +91,12 @@ namespace AudioArchive.Modules.Core.Services
     /// <param name="verificationCode">The verification code, or null to send a new one.</param>
     /// <returns>True if the account was verified, false if an email was sent instead.</returns>
     Task<bool> AccountVerificationAsync(string? verificationCode = null);
+
+    /// <summary>
+    /// Retrieves the public profile for an account by username.
+    /// </summary>
+    /// <param name="username">The username to look up.</param>
+    /// <returns>The account profile, or null if not found.</returns>
+    Task<AccountProfile?> GetProfileAsync(string username);
   }
 }

@@ -7,16 +7,19 @@ namespace AudioArchive.Database
   {
     public DbSet<Artist> Artists { get; set; }
     public DbSet<Account> Accounts { get; set; }
+    public DbSet<Permission> Permissions { get; set; }
+    public DbSet<ArtistSocial> ArtistSocials { get; set; }
+    public DbSet<AccountPreferences> AccountPreferences { get; set; }
 
+    public DbSet<LoginLocation> LoginLocations { get; set; }
+    public DbSet<VerificationCode> VerificationCodes { get; set; }
+    
     public DbSet<Tag> Tags { get; set; }
     public DbSet<Audio> Audios { get; set; }
     public DbSet<Playlist> Playlists { get; set; }
-    public DbSet<Permission> Permissions { get; set; }
-    public DbSet<ArtistSocial> ArtistSocials { get; set; }
     public DbSet<AudioMetadata> AudioMetadata { get; set; }
-    public DbSet<LoginLocation> LoginLocations { get; set; }
+
     public DbSet<SupportTicket> SupportTickets { get; set; }
-    public DbSet<VerificationCode> VerificationCodes { get; set; }
     public DbSet<SupportTicketMessage> SupportTicketMessages { get; set; }
     public DbSet<SupportTicketAttachment> SupportTicketAttachments { get; set; }
 
@@ -85,9 +88,19 @@ namespace AudioArchive.Database
         account.HasKey(a => a.Id);
         account.HasIndex(a => a.Email).IsUnique();
         account.HasIndex(a => a.Username).IsUnique();
+        account.HasOne(a => a.Preferences)
+          .WithOne(p => p.Account)
+          .HasForeignKey<AccountPreferences>(p => p.AccountId)
+          .OnDelete(DeleteBehavior.Cascade);
         account.HasMany(a => a.Favourites)
           .WithMany()
           .UsingEntity(j => j.ToTable("user_favourite_audios"));
+        account.HasMany(a => a.Following)
+          .WithMany(a => a.Followers)
+          .UsingEntity(j => j.ToTable("account_artist_follows"));
+        account.HasMany(a => a.Permissions)
+          .WithMany(p => p.Accounts)
+          .UsingEntity(j => j.ToTable("account_permissions"));
       });
 
       modelBuilder.Entity<SupportTicket>(ticket => {
@@ -110,9 +123,9 @@ namespace AudioArchive.Database
           .HasForeignKey(a => a.SupportTicketId)
           .OnDelete(DeleteBehavior.Cascade);
         ticket.HasMany(t => t.Messages)
-          .WithOne(m => m.SupportTicket)
-          .HasForeignKey(m => m.SupportTicketId)
-          .OnDelete(DeleteBehavior.Cascade);
+        .WithOne(m => m.SupportTicket)
+        .HasForeignKey(m => m.SupportTicketId)
+        .OnDelete(DeleteBehavior.Cascade);
       });
 
       modelBuilder.Entity<SupportTicketAttachment>(attachment => {
@@ -148,12 +161,7 @@ namespace AudioArchive.Database
           .HasForeignKey(c => c.AccountId)
           .OnDelete(DeleteBehavior.Cascade);
       });
-
-      modelBuilder.Entity<Account>()
-        .HasMany(a => a.Permissions)
-        .WithMany(p => p.Accounts)
-        .UsingEntity(j => j.ToTable("account_permissions"));
-
+      
       base.OnModelCreating(modelBuilder);
     }
   }

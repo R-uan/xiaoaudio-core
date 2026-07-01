@@ -5,9 +5,16 @@ namespace AudioArchive.Database.Entity
   public class Account
   {
     public int Id { get; set; }
+    
     public required string Email { get; set; }
+    public string? PublicEmail { get; set; }
+    
     public required string Username { get; set; }
     public required string Password { get; set; }
+    
+    public string? DisplayName { get; set; }
+    public DateTime? Birthday { get; set; }
+    public string? Biography { get; set; }
 
     public bool VerifiedArtist { get; set; } = false;
     public bool VerifiedAccount { get; set; } = false;
@@ -15,12 +22,17 @@ namespace AudioArchive.Database.Entity
     public Guid? ArtistProfileId { get; set; }
     public Artist? ArtistProfile { get; set; }
 
-    public ICollection<Audio> Favourites { get; set; } = [];  
-    public List<LoginLocation>? LoginLocations { get; set; }
-    public List<SupportTicket>? AssignedTickets { get; set; }
-    public List<SupportTicket>? RequestedTickets { get; set; }
+    public AccountPreferences? Preferences { get; set; }
     public ICollection<Permission> Permissions { get; set; } = [];
-    public List<SupportTicketMessage>? TicketMessages { get; set; }
+    public ICollection<LoginLocation>? LoginLocations { get; set; } = [];
+    
+    public ICollection<Audio> Favourites { get; set; } = [];  
+    public ICollection<Artist> Following { get; set; } = [];
+    
+    public ICollection<SupportTicket>? AssignedTickets { get; set; } = [];
+    public ICollection<SupportTicket>? RequestedTickets { get; set; } = [];
+    public ICollection<SupportTicketMessage>? TicketMessages { get; set; } = [];
+
 
     public bool VerifyPassword(string password) {
       // TODO: password hashing

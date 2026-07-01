@@ -8,10 +8,10 @@ namespace AudioArchive.Shared
       if (ex is APIException apiEx) {
         ctx.Response.StatusCode = apiEx.StatusCode;
         await ctx.Response.WriteAsJsonAsync(new {
-          apiEx.StatusCode,
-          apiEx.Message,
-          apiEx.Source,
-          ctx.Request.Path
+          StatusCode = apiEx.StatusCode,
+          Message = apiEx.Message,
+          Source = apiEx.Source,
+          Path = ctx.Request.Path
         }, cancellationToken);
       } else {
         ctx.Response.StatusCode = StatusCodes.Status500InternalServerError;

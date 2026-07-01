@@ -1,17 +1,18 @@
 using Microsoft.AspNetCore.Mvc;
 using AudioArchive.Modules.Core.Requests;
+using AudioArchive.Modules.Core.Responses;
 
 namespace AudioArchive.Modules.Core.Controllers
 {
   public partial class AccountController
   {
-    [HttpPost("authentication")]
+    [HttpPost("signin")]
     public async Task<IActionResult> AuthenticateAccount([FromBody] SignInRequest request) {
       var token = await this._accountService.SignInAsync(request);
       return Ok(new { Success = true, Data = new { Token = token } });
     }
 
-    [HttpPost("registration")]
+    [HttpPost("signup")]
     public async Task<IActionResult> RegisterAccount([FromBody] SignUpRequest request) {
       var token = await this._accountService.SignUpAsync(request);
       return Ok(new { Success = true, Data = new { Token = token } });
@@ -42,6 +43,11 @@ namespace AudioArchive.Modules.Core.Controllers
       } else {
         return BadRequest(new { Success = false, Message = "Invalid value." });
       }
+    }
+
+    [HttpGet("profile/{username}")]
+    public async Task<IActionResult> Profile([FromRoute] string username) {
+      return Ok(new { Success = true, Data = await _accountService.GetProfileAsync(username) });
     }
   }
 }

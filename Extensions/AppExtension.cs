@@ -66,6 +66,7 @@ namespace AudioArchive.Extensions
       var admin = new Account {
         Email = settings.Email,
         Username = settings.Username,
+        DisplayName = settings.Username,
         Password = settings.Password,
         Permissions = permissions
       };

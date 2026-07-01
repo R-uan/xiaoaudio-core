@@ -18,6 +18,8 @@ namespace AudioArchive.Database.Entity
     public DateTime? DebutDate { get; set; }
     public DateTime? GraduationDate { get; set; }
 
+    public ICollection<Account> Followers { get; set; } = [];
+    
     [JsonIgnore] public int? VerifiedAccountId { get; set; }
     [JsonIgnore] public Account? VerifiedAccount { get; set; }
     [JsonIgnore] public List<Audio>? Audios { get; set; }

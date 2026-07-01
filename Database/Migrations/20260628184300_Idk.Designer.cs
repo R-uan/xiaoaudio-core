@@ -3,6 +3,7 @@ using System;
 using AudioArchive.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AudioArchive.Database.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20260628184300_Idk")]
+    partial class Idk
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,21 +24,6 @@ namespace AudioArchive.Database.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("AccountArtist", b =>
-                {
-                    b.Property<int>("FollowersId")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("FollowingId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("FollowersId", "FollowingId");
-
-                    b.HasIndex("FollowingId");
-
-                    b.ToTable("account_artist_follows", (string)null);
-                });
 
             modelBuilder.Entity("AccountAudio", b =>
                 {
@@ -78,24 +66,12 @@ namespace AudioArchive.Database.Migrations
                     b.Property<Guid?>("ArtistProfileId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Biography")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("Birthday")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("DisplayName")
-                        .HasColumnType("text");
-
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Password")
                         .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("PublicEmail")
                         .HasColumnType("text");
 
                     b.Property<string>("Username")
@@ -117,40 +93,6 @@ namespace AudioArchive.Database.Migrations
                         .IsUnique();
 
                     b.ToTable("accounts", (string)null);
-                });
-
-            modelBuilder.Entity("AudioArchive.Database.Entity.AccountPreferences", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AccountId")
-                        .HasColumnType("integer");
-
-                    b.Property<bool>("DisplayBirthday")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("MatureRating")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("PrimaryEmailPublic")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("PrivateAudios")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("PrivateProfile")
-                        .HasColumnType("boolean");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AccountId")
-                        .IsUnique();
-
-                    b.ToTable("AccountPreferences");
                 });
 
             modelBuilder.Entity("AudioArchive.Database.Entity.Artist", b =>
@@ -551,21 +493,6 @@ namespace AudioArchive.Database.Migrations
                     b.ToTable("playlist_audios", (string)null);
                 });
 
-            modelBuilder.Entity("AccountArtist", b =>
-                {
-                    b.HasOne("AudioArchive.Database.Entity.Account", null)
-                        .WithMany()
-                        .HasForeignKey("FollowersId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("AudioArchive.Database.Entity.Artist", null)
-                        .WithMany()
-                        .HasForeignKey("FollowingId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("AccountAudio", b =>
                 {
                     b.HasOne("AudioArchive.Database.Entity.Account", null)
@@ -594,17 +521,6 @@ namespace AudioArchive.Database.Migrations
                         .HasForeignKey("PermissionsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("AudioArchive.Database.Entity.AccountPreferences", b =>
-                {
-                    b.HasOne("AudioArchive.Database.Entity.Account", "Account")
-                        .WithOne("Preferences")
-                        .HasForeignKey("AudioArchive.Database.Entity.AccountPreferences", "AccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Account");
                 });
 
             modelBuilder.Entity("AudioArchive.Database.Entity.Artist", b =>
@@ -757,8 +673,6 @@ namespace AudioArchive.Database.Migrations
                     b.Navigation("AssignedTickets");
 
                     b.Navigation("LoginLocations");
-
-                    b.Navigation("Preferences");
 
                     b.Navigation("RequestedTickets");
 

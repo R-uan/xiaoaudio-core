@@ -40,13 +40,13 @@ namespace AudioArchive.Extensions
     }
 
     public static IServiceCollection AddApplicationServices(this IServiceCollection services) {
+      services.AddExceptionHandler<GlobalExceptionHandler>();
       services.AddHostedService<TagCleanupService>();
       services.AddScoped<ITagService, TagService>();
       services.AddScoped<IAudioService, AudioService>();
       services.AddScoped<IArtistService, ArtistService>();
       services.AddScoped<IPlaylistService, PlaylistService>();
       services.AddSingleton<ICachingService, CachingService>();
-      services.AddExceptionHandler<GlobalExceptionHandler>();
       services.AddScoped<IAccountService, AccountService>();
       services.AddScoped<ISupportService, SupportService>();
       services.AddScoped<IAuthenticationProvider, AuthenticationProvider>();

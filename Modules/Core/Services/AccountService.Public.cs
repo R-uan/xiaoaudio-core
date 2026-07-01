@@ -9,14 +9,20 @@ namespace AudioArchive.Modules.Core.Services
 {
   public partial class AccountService
   {
-    public async Task<string> SignUpAsync(SignUpRequest request) {
-      await VerifyEmailAvailabilityAsync(request.Email);
-
+    public async Task<string> SignUpAsync(SignUpRequest req) {
+      await VerifyUsernameAvailabilityAsync(req.Username);
+      await VerifyEmailAvailabilityAsync(req.Email);
       var account = new Account {
         VerifiedArtist = false,
-        Email = request.Email,
-        Password = request.Password,
-        Username = request.Username,
+        Email = req.Email,
+        Password = req.Password,
+        Username = req.Username,
+        DisplayName = req.DisplayName ?? req.Username,
+      };
+
+      var accountPreferences = new AccountPreferences() {
+        Account = account,
+        AccountId = account.Id
       };
 
       await _db.Accounts.AddAsync(account);
@@ -118,29 +124,36 @@ namespace AudioArchive.Modules.Core.Services
     }
 
     public async Task<bool> VerifyEmailAvailabilityAsync(string email) {
-      var exists = await _db.Accounts.Select(u => u.Email == email).FirstOrDefaultAsync();
-
+      var exists = await _db.Accounts.AnyAsync(u => u.Email == email);
       if (exists) {
         throw new DuplicatedException(
           Message: "Email is already in use.",
           Target: "AccountService::VerifyEmailAvailability"
         );
       }
-
       return true;
     }
 
     public async Task<bool> VerifyUsernameAvailabilityAsync(string username) {
-      var isReserved = await _db.Artists.Select(a => a.Name == username).FirstOrDefaultAsync();
-
-      if (isReserved) {
-        throw new ReservedException(
-          Message: "Username is reserved. If you think it's for you, contact the support.",
+      if (await _db.Artists.AnyAsync(a => a.Name == username)) {
+        throw new ConflictException(
+          Message: "Username is already in use. If you think it's reserved for you you, contact the support.",
           Target: "AccountService::VerifyUsernameAsync"
         );
       }
-
       return true;
+    }
+
+    public async Task<AccountProfile?> GetProfileAsync(string username) {
+      var account = await _db.Accounts.Include(a => a.ArtistProfile)
+        .Include(a => a.Favourites).Include(a => a.Following).AsSplitQuery()
+        .FirstOrDefaultAsync(a => a.Username == username) ?? 
+          throw new NotFoundException(
+            Message: "Profile not found",
+            Target: "AccountService::GetProfileAsync"
+          );
+
+      return AccountProfile.From(account);
     }
   }
 }
