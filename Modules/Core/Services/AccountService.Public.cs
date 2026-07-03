@@ -145,15 +145,41 @@ namespace AudioArchive.Modules.Core.Services
     }
 
     public async Task<AccountProfile?> GetProfileAsync(string username) {
-      var account = await _db.Accounts.Include(a => a.ArtistProfile)
-        .Include(a => a.Favourites).Include(a => a.Following).AsSplitQuery()
+      var account = await _db.Accounts
+        .Include(a => a.ArtistProfile)
+        .Include(a => a.Favourites)
+        .Include(a => a.Following)
+        .Include(a => a.Preferences)
+        .AsSplitQuery()
         .FirstOrDefaultAsync(a => a.Username == username) ?? 
           throw new NotFoundException(
             Message: "Profile not found",
             Target: "AccountService::GetProfileAsync"
           );
 
-      return AccountProfile.From(account);
+      if (account.ArtistProfile != null) {
+        await _db.Entry(account.ArtistProfile)
+          .Collection(a => a.Followers)
+          .LoadAsync();
+      }
+
+      bool canAccessPrivate = false;
+      var isPrivate = account.Preferences?.PrivateProfile ?? false;
+
+      if (isPrivate) {
+        var currentUser = await _currentAccount.GetAsync();
+        if (currentUser.Id == account.Id) {
+          canAccessPrivate = true;
+        } else if (account.VerifiedArtist && account.ArtistProfileId != null) {
+          canAccessPrivate = await _db.Accounts
+            .AnyAsync(
+              a => a.Id == currentUser.Id &&
+              a.Following.Any(art => art.Id == account.ArtistProfileId)
+            );
+        }
+      }
+
+      return AccountProfile.From(account, canAccessPrivate);
     }
   }
 }
