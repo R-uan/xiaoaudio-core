@@ -16,9 +16,9 @@ namespace AudioArchive.Modules.Core.Services
       var account = new Account {
         VerifiedArtist = false,
         Email = req.Email,
-        Password = req.Password,
         Username = req.Username,
         DisplayName = req.DisplayName ?? req.Username,
+        Password = BCrypt.Net.BCrypt.HashPassword(req.Password),
       };
 
       var preferences = new AccountPreferences() {

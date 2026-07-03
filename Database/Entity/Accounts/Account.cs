@@ -35,14 +35,11 @@ namespace AudioArchive.Database.Entity
 
 
     public bool VerifyPassword(string password) {
-      // TODO: password hashing
-      return this.Password == password;
+      return BCrypt.Net.BCrypt.Verify(password, this.Password);
     }
 
     public bool ChangePassword(string newPassword) {
-      // 1. Validate the password
-      // 2. Hash it
-      this.Password = newPassword;
+      this.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
       return true;
     }
 
