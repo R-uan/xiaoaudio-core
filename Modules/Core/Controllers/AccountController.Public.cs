@@ -8,14 +8,14 @@ namespace AudioArchive.Modules.Core.Controllers
   {
     [HttpPost("signin")]
     public async Task<IActionResult> AuthenticateAccount([FromBody] SignInRequest request) {
-      var token = await this._accountService.SignInAsync(request);
-      return Ok(new { Success = true, Data = new { Token = token } });
+      (AccountResponse Account, string Token) = await this._accountService.SignInAsync(request);
+      return this.Ok(new { Success = true, Data = new { Token, Account } });
     }
 
     [HttpPost("signup")]
     public async Task<IActionResult> RegisterAccount([FromBody] SignUpRequest request) {
-      var token = await this._accountService.SignUpAsync(request);
-      return Ok(new { Success = true, Data = new { Token = token } });
+      (AccountResponse Account, string Token) = await this._accountService.SignUpAsync(request);
+      return this.Ok(new { Success = true, Data = new { Token, Account } });
     }
 
     [HttpPost("forgot-password")]

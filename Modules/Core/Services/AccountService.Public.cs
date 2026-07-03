@@ -9,9 +9,10 @@ namespace AudioArchive.Modules.Core.Services
 {
   public partial class AccountService
   {
-    public async Task<string> SignUpAsync(SignUpRequest req) {
+    public async Task<(AccountResponse, string)> SignUpAsync(SignUpRequest req) {
       await VerifyUsernameAvailabilityAsync(req.Username);
       await VerifyEmailAvailabilityAsync(req.Email);
+      
       var account = new Account {
         VerifiedArtist = false,
         Email = req.Email,
@@ -20,34 +21,44 @@ namespace AudioArchive.Modules.Core.Services
         DisplayName = req.DisplayName ?? req.Username,
       };
 
-      var accountPreferences = new AccountPreferences() {
+      var preferences = new AccountPreferences() {
+        AccountId = account.Id,
         Account = account,
-        AccountId = account.Id
       };
 
       await _db.Accounts.AddAsync(account);
+      await _db.AccountPreferences.AddAsync(preferences);
       await _db.SaveChangesAsync();
       // TODO: Send email verification email
-      return this._authProvider.GenerateToken(account);
+      return (
+        AccountResponse.From(account), 
+        _authProvider.GenerateToken(account)
+      );
     }
 
-    public async Task<string> SignInAsync(SignInRequest request) {
+    public async Task<(AccountResponse, string)> SignInAsync(SignInRequest req) {
       var account = await _db.Accounts
-        .Where(a => a.Email == request.Email)
-        .FirstOrDefaultAsync()
-        ?? throw new NotFoundException(
-          Message: "This email is not associated to an account.",
-          Target: "AccountService::AuthenticateAccountAsync"
-        );
+        .Include(a => a.ArtistProfile)
+        .Include(a => a.Following)
+        .Include(a => a.Preferences)
+        .AsSplitQuery()
+        .FirstOrDefaultAsync(a => a.Email == req.Email) ?? 
+          throw new NotFoundException(
+            Message: "Profile not found",
+            Target: "AccountService::GetProfileAsync"
+          );
 
-      if (!account.VerifyPassword(request.Password)) {
+      if (!account.VerifyPassword(req.Password)) {
         throw new UnauthorizedException(
           Message: "Credentials invalid.",
           Target: "AccountService::AuthenticateAccountAsync"
         );
       }
 
-      return _authProvider.GenerateToken(account);
+      return (
+        AccountResponse.From(account), 
+        _authProvider.GenerateToken(account)
+      );
     }
 
     public async Task<bool> ForgotPasswordAsync(ForgotPasswordRequest req) {

@@ -47,14 +47,14 @@ namespace AudioArchive.Modules.Core.Services
     /// </summary>
     /// <param name="request">Registration payload with email, username, and password.</param>
     /// <returns>JWT token string for the newly created account.</returns>
-    Task<string> SignUpAsync(SignUpRequest request);
+    Task<(AccountResponse, string)> SignUpAsync(SignUpRequest request);
 
     /// <summary>
     /// Authenticates an existing account by credentials and returns a JWT token.
     /// </summary>
     /// <param name="request">Authentication payload with email and password.</param>
     /// <returns>JWT token string for the authenticated session.</returns>
-    Task<string> SignInAsync(SignInRequest request);
+    Task<(AccountResponse, string)> SignInAsync(SignInRequest request);
 
     /// <summary>
     /// Checks whether an email address is available for registration.
